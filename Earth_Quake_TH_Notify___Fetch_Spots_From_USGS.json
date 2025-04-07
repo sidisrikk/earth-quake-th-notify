@@ -1,0 +1,437 @@
+{
+  "name": "Earth Quake TH Notify / Fetch Spots From USGS",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-440, 300],
+      "id": "9570fbff-79ad-44bb-a932-5b4b6731a014",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "28cd2f25-e4b7-4073-8749-7b525cdaa558",
+              "leftValue": "={{ $json.metadata.status }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-220, 300],
+      "id": "ecb2b323-8343-4a72-b292-65d8b2387219",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-660, 300],
+      "id": "09f81383-d5f5-4280-892b-cb9edf912f0e",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "properties.time"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [660, 300],
+      "id": "62e551c6-5233-4190-a847-3c970036d783",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ab1dcb99-fd7c-49ca-bd27-781c2ade971f",
+              "leftValue": "={{ $json.properties.mag }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "6ad5265b-6970-4cff-b669-fa90f0f88fd6",
+              "leftValue": "={{ $json.properties.mag }}",
+              "rightValue": 7,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [220, 200],
+      "id": "df100afe-c6a2-4b3c-99c4-67abf3fcc206",
+      "name": "magnitude 6.0 - 6.9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ab1dcb99-fd7c-49ca-bd27-781c2ade971f",
+              "leftValue": "={{ $json.properties.mag }}",
+              "rightValue": 7,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "7ef6615c-26f1-4879-82cf-cc2424c1a162",
+              "leftValue": "={{ $json.properties.mag }}",
+              "rightValue": 8,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [220, 400],
+      "id": "1b09bd4b-b7e7-41e1-8ddf-b2145f21fae6",
+      "name": "magnitude 7.0 - 7.9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ab1dcb99-fd7c-49ca-bd27-781c2ade971f",
+              "leftValue": "={{ $json.properties.mag }}",
+              "rightValue": 8,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [220, 600],
+      "id": "fd3e32a0-1fd5-4590-8a55-6eedef50d552",
+      "name": "magnitude 8.0+"
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [460, 280],
+      "id": "cd5dc42d-19c5-4fec-9b15-4385a3011b4d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const locations = [\n    { name: \"Bangkok\", lat: 13.7563, lon: 100.5018 },\n    { name: \"Chiang Mai\", lat: 18.793867, lon: 98.997116 },\n    { name: \"Phuket\", lat: 7.878978, lon: 98.398392 }\n];\n\nconst radiusKm = 800;\n\nconst haversine = (lat1, lon1, lat2, lon2) => {\n    const R = 6371; // Radius of Earth in km\n    const toRad = angle => (Math.PI / 180) * angle;\n    const dLat = toRad(lat2 - lat1);\n    const dLon = toRad(lon2 - lon1);\n    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;\n    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n    return R * c;\n};\n\nconst isWithinRadius = (lat, lon, locations, radius) => {\n    return locations.some(({ lat: locLat, lon: locLon }) => haversine(locLat, locLon, lat, lon) <= radius);\n};\n\nconst filteredFeatures = $input.first().json.features.filter(feature => {\n    const [lon, lat] = feature.geometry.coordinates;\n    return isWithinRadius(lat, lon, locations, radiusKm);\n});\n\nreturn filteredFeatures;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 200],
+      "id": "552986a7-6d67-424f-b0f5-baaf54859f33",
+      "name": "filter 800 km radius"
+    },
+    {
+      "parameters": {
+        "jsCode": "const locations = [\n    { name: \"Bangkok\", lat: 13.7563, lon: 100.5018 },\n    { name: \"Chiang Mai\", lat: 18.793867, lon: 98.997116 },\n    { name: \"Phuket\", lat: 7.878978, lon: 98.398392 }\n];\n\nconst radiusKm = 400;\n\nconst haversine = (lat1, lon1, lat2, lon2) => {\n    const R = 6371; // Radius of Earth in km\n    const toRad = angle => (Math.PI / 180) * angle;\n    const dLat = toRad(lat2 - lat1);\n    const dLon = toRad(lon2 - lon1);\n    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;\n    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n    return R * c;\n};\n\nconst isWithinRadius = (lat, lon, locations, radius) => {\n    return locations.some(({ lat: locLat, lon: locLon }) => haversine(locLat, locLon, lat, lon) <= radius);\n};\n\nconst filteredFeatures = $input.first().json.features.filter(feature => {\n    const [lon, lat] = feature.geometry.coordinates;\n    return isWithinRadius(lat, lon, locations, radiusKm);\n});\n\nreturn filteredFeatures;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "id": "908bb8f3-18dc-4bf0-b1bf-30e360b1e304",
+      "name": "filter 400 km radius"
+    },
+    {
+      "parameters": {
+        "jsCode": "const locations = [\n    { name: \"Bangkok\", lat: 13.7563, lon: 100.5018 },\n    { name: \"Chiang Mai\", lat: 18.793867, lon: 98.997116 },\n    { name: \"Phuket\", lat: 7.878978, lon: 98.398392 }\n];\n\nconst radiusKm = 1600;\n\nconst haversine = (lat1, lon1, lat2, lon2) => {\n    const R = 6371; // Radius of Earth in km\n    const toRad = angle => (Math.PI / 180) * angle;\n    const dLat = toRad(lat2 - lat1);\n    const dLon = toRad(lon2 - lon1);\n    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;\n    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n    return R * c;\n};\n\nconst isWithinRadius = (lat, lon, locations, radius) => {\n    return locations.some(({ lat: locLat, lon: locLon }) => haversine(locLat, locLon, lat, lon) <= radius);\n};\n\nconst filteredFeatures = $input.first().json.features.filter(feature => {\n    const [lon, lat] = feature.geometry.coordinates;\n    return isWithinRadius(lat, lon, locations, radiusKm);\n});\n\nreturn filteredFeatures;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 400],
+      "id": "fbbebe19-3916-4a86-9f2a-15d8b3dc5875",
+      "name": "filter 1600 km radius"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fea9a06e-dfdf-4eb4-84a6-3fd755683e40",
+              "leftValue": "={{ $json.properties.mag }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "97782d76-e2ba-4e64-bb00-24782b0b7466",
+              "leftValue": "={{ $json.properties.mag }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [220, 0],
+      "id": "2ba2620d-516b-4d38-80d1-22e78cdce0cf",
+      "name": "magnitude 5.0 - 5.9"
+    },
+    {
+      "parameters": {
+        "jsCode": "const locations = [\n    { name: \"Bangkok\", lat: 13.7563, lon: 100.5018 },\n    { name: \"Chiang Mai\", lat: 18.793867, lon: 98.997116 },\n    { name: \"Phuket\", lat: 7.878978, lon: 98.398392 }\n];\n\nconst radiusKm = 2400;\n\nconst haversine = (lat1, lon1, lat2, lon2) => {\n    const R = 6371; // Radius of Earth in km\n    const toRad = angle => (Math.PI / 180) * angle;\n    const dLat = toRad(lat2 - lat1);\n    const dLon = toRad(lon2 - lon1);\n    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;\n    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n    return R * c;\n};\n\nconst isWithinRadius = (lat, lon, locations, radius) => {\n    return locations.some(({ lat: locLat, lon: locLon }) => haversine(locLat, locLon, lat, lon) <= radius);\n};\n\nconst filteredFeatures = $input.first().json.features.filter(feature => {\n    const [lon, lat] = feature.geometry.coordinates;\n    return isWithinRadius(lat, lon, locations, radiusKm);\n});\n\nreturn filteredFeatures;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 600],
+      "id": "a68ddca7-226a-4b24-bde1-53b6cbb484bc",
+      "name": "filter 2400 km radius"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "filter 400 km radius",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "filter 800 km radius",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "filter 1600 km radius",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "filter 2400 km radius",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "magnitude 6.0 - 6.9": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "magnitude 7.0 - 7.9": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "magnitude 8.0+": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "filter 800 km radius": {
+      "main": [
+        [
+          {
+            "node": "magnitude 6.0 - 6.9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filter 400 km radius": {
+      "main": [
+        [
+          {
+            "node": "magnitude 5.0 - 5.9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filter 1600 km radius": {
+      "main": [
+        [
+          {
+            "node": "magnitude 7.0 - 7.9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "magnitude 5.0 - 5.9": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filter 2400 km radius": {
+      "main": [
+        [
+          {
+            "node": "magnitude 8.0+",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "81d34007-41ab-4d35-a8e0-10b67243fa10",
+  "meta": {
+    "instanceId": "c484fdf3cb39494fb04b60ac8b0773e25fb151f69a486e4f632d09d18deacd63"
+  },
+  "id": "qaKOr6Kdbe3R9vi9",
+  "tags": [
+    {
+      "createdAt": "2025-04-06T04:48:01.455Z",
+      "updatedAt": "2025-04-06T04:48:01.455Z",
+      "id": "rveQZOwAfQv8CKi1",
+      "name": "EQTHN"
+    }
+  ]
+}

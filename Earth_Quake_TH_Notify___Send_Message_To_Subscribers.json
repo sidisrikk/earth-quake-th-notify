@@ -1,0 +1,128 @@
+{
+  "name": "Earth Quake TH Notify / Send Message To Subscribers",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "id": "e014a118-d5b5-4839-bf20-1d382e0770c6",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "subscribers",
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [220, 0],
+      "id": "168bfc17-1a30-440a-b038-e7868d8f6367",
+      "name": "Supabase",
+      "credentials": {
+        "supabaseApi": {
+          "id": "wBbqO95CS73HURCX",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [440, 0],
+      "id": "0694faa5-d575-4d8b-8979-1535fe73a070",
+      "name": "Loop Chat Ids"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "=แผ่นดินไหว {{ $('When Executed by Another Workflow').item.json.geojson.properties.mag }} เมื่อ {{ $('When Executed by Another Workflow').item.json.timeInThailand }} \n- เชียงใหม่ {{ $('When Executed by Another Workflow').item.json.distance.chiangMai }} ({{ $('When Executed by Another Workflow').item.json.arrivalTime.chiangMai }})\n- กทม {{ $('When Executed by Another Workflow').item.json.distance.bangkok }} ({{ $('When Executed by Another Workflow').item.json.arrivalTime.bangkok }})\n- ภูเก็ต {{ $('When Executed by Another Workflow').item.json.distance.phuket }} ({{ $('When Executed by Another Workflow').item.json.arrivalTime.phuket }})\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [660, 0],
+      "id": "a5bdf523-c120-406b-ba2a-7401026901b3",
+      "name": "send a message",
+      "webhookId": "19f7dd65-34b0-415b-b79c-f0a378d11e97",
+      "credentials": {
+        "telegramApi": {
+          "id": "2y13CzU1k1QxqxJp",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase": {
+      "main": [
+        [
+          {
+            "node": "Loop Chat Ids",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Chat Ids": {
+      "main": [
+        [],
+        [
+          {
+            "node": "send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send a message": {
+      "main": [
+        [
+          {
+            "node": "Loop Chat Ids",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8e6d680d-351c-4d36-ab82-6a0f7ae7a9c8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c484fdf3cb39494fb04b60ac8b0773e25fb151f69a486e4f632d09d18deacd63"
+  },
+  "id": "18Yj3AguBo9vt2EE",
+  "tags": [
+    {
+      "createdAt": "2025-04-06T04:48:01.455Z",
+      "updatedAt": "2025-04-06T04:48:01.455Z",
+      "id": "rveQZOwAfQv8CKi1",
+      "name": "EQTHN"
+    }
+  ]
+}

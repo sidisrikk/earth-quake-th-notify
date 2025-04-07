@@ -1,0 +1,569 @@
+{
+  "name": "Earth Quake TH Notify / Main",
+  "nodes": [
+    {
+      "parameters": {
+        "tableId": "events",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.properties.title }}"
+            },
+            {
+              "fieldId": "featureId",
+              "fieldValue": "={{ $json.id }}"
+            },
+            {
+              "fieldId": "event_occurred_at",
+              "fieldValue": "={{ $json.properties.time }}"
+            },
+            {
+              "fieldId": "geojson",
+              "fieldValue": "={{ $json }}"
+            },
+            {
+              "fieldId": "updated_epoch_at",
+              "fieldValue": "={{ $json.properties.updated }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [-720, 180],
+      "id": "3032ecd2-7826-40e5-92bc-12c29ebc8d9b",
+      "name": "Create",
+      "credentials": {
+        "supabaseApi": {
+          "id": "wBbqO95CS73HURCX",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $('Loop Messages').all()"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-940, 180],
+      "id": "9d7a5c9a-d5a1-4c45-a431-5d465e0a479c",
+      "name": "ref created data"
+    },
+    {
+      "parameters": {
+        "amount": 0.1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [160, 520],
+      "id": "c31d9e1d-5b33-4b46-ba3d-1e6e16c94266",
+      "name": "Wait",
+      "webhookId": "9844ce0d-4044-493e-81e4-c98fb4e1aed9"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "events",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "featureId",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [-1380, 340],
+      "id": "15e1a312-bd2e-4a3c-86e2-ed704c7e6652",
+      "name": "get event from DB",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "wBbqO95CS73HURCX",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "773f3e23-5694-4324-ae9c-c8b14d8f2755",
+              "leftValue": "={{ $('get event from DB').item.json.geojson.properties.updated }}",
+              "rightValue": "={{ $('Loop Messages').item.json.properties.updated }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-280, 520],
+      "id": "c6ebe43b-91b9-4edf-9e2a-cc39d7ad2053",
+      "name": "if data update?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fa29b19c-383d-4c4b-9b54-ce11239d4304",
+                    "leftValue": "={{ $json.isEmpty() }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1623a56f-1387-4927-a288-8f4af311fc43",
+                    "leftValue": "={{ $json.isEmpty() }}",
+                    "rightValue": "false",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [-1160, 340],
+      "id": "32627d80-0249-4140-8a5f-dbc9032ccd21",
+      "name": "event exist ?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "events",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "featureId",
+              "condition": "eq",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.properties.title }}"
+            },
+            {
+              "fieldId": "featureId",
+              "fieldValue": "={{ $json.id }}"
+            },
+            {
+              "fieldId": "event_occurred_at",
+              "fieldValue": "={{ $json.properties.timeInUTC }}"
+            },
+            {
+              "fieldId": "geojson",
+              "fieldValue": "={{ $json }}"
+            },
+            {
+              "fieldId": "updated_epoch_at",
+              "fieldValue": "={{ $json.properties.updated }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [-60, 440],
+      "id": "5b2d14bb-a4a7-4fe8-acec-23973aad1464",
+      "name": "Update",
+      "credentials": {
+        "supabaseApi": {
+          "id": "wBbqO95CS73HURCX",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const bangkokLat = 13.7563;\nconst bangkokLon = 100.5018;\n\nconst chiangMaiLat = 18.793867 \nconst chiangMaiLon = 98.997116\n\nconst phuketLat = 7.878978\nconst phuketLon = 98.398392\nfunction earthquakeArrivalTime(lat1, lon1, lat2, lon2, depth) {\n    const R = 6371; // Earth's radius in km\n    const waveSpeed = 6 // p wave speed is 6km per sec\n\n    // Convert degrees to radians\n    function toRad(deg) {\n        return deg * (Math.PI / 180);\n    }\n\n    // Haversine formula to calculate surface distance\n    function haversineDistance(lat1, lon1, lat2, lon2) {\n        const dLat = toRad(lat2 - lat1);\n        const dLon = toRad(lon2 - lon1);\n        const a = \n            Math.sin(dLat / 2) * Math.sin(dLat / 2) +\n            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * \n            Math.sin(dLon / 2) * Math.sin(dLon / 2);\n        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n        return R * c; // Surface distance in km\n    }\n\n    const surfaceDistance = haversineDistance(lat1, lon1, lat2, lon2);\n\n    // Total distance considering depth (Pythagorean theorem)\n    const totalDistance = Math.sqrt(surfaceDistance ** 2 + depth ** 2);\n\n    const timeInSeconds = totalDistance / waveSpeed;\n    return {\n        totalDistance: `${totalDistance.toFixed(2)} กิโลเมตร`,\n        time: Math.floor(timeInSeconds)\n    };\n}\n\nfunction formatTimeThai(seconds) {\n    if (seconds < 60) {\n        return `${seconds} วินาที`;\n    }\n\n    const minutes = Math.floor(seconds / 60);\n    const remainingSeconds = seconds % 60;\n\n    if (remainingSeconds === 0) {\n        return `${minutes} นาที`;\n    }\n\n    return `${minutes} นาที ${remainingSeconds} วินาที`;\n}\n\nconst result =[]\nfor (const item of $input.all()) {\n  const originLat = $input.first().json.geojson.geometry.coordinates[1]\n  const originLon = $input.first().json.geojson.geometry.coordinates[0]\n  const originDepth = $input.first().json.geojson.geometry.coordinates[2]\n    \n  const { time: bangkokPWaveTime, totalDistance: bangkokDistance } = earthquakeArrivalTime(originLat, originLon, bangkokLat, bangkokLon, originDepth)\n    const { time: chiangMaiPWaveTime, totalDistance: chiangmaiDistance } = earthquakeArrivalTime(originLat, originLon, chiangMaiLat, chiangMaiLon, originDepth)\n    const { time: phuketpWaveTime, totalDistance: phuketDistance } = earthquakeArrivalTime(originLat, originLon, phuketLat, phuketLon, originDepth)\n  result.push({\n    id: item.json.id,\n    arrivalTime:{\n      chiangMai : formatTimeThai(chiangMaiPWaveTime),\n      bangkok: formatTimeThai(bangkokPWaveTime),\n      phuket: formatTimeThai(phuketpWaveTime)\n    },\n    distance:{\n      chiangMai : chiangmaiDistance ,\n      bangkok: bangkokDistance,\n      phuket: phuketDistance\n    }\n  })\n}\n\nreturn result"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-500, 280],
+      "id": "baf13c99-9c1d-4737-b00c-e24b81c1dd0c",
+      "name": "Calculate Arrival Time"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.timeInThailand = new Date($input.first().json.event_occurred_at).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-500, 80],
+      "id": "9a449c7c-7d4f-4bce-bd34-424b99280502",
+      "name": "Convert Thai Timezone"
+    },
+    {
+      "parameters": {
+        "content": "## Style Thai Format & Additional Fields",
+        "height": 460,
+        "width": 440
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-780, -40],
+      "id": "7dd0226f-b70d-4650-aca8-d1c5312a9f43",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# Timer Config\n\nSet to 10-minute interval for testing. In production, it should update as soon as possible (less than 1 minute) according to USGS update frequency.",
+        "height": 180,
+        "width": 420
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-2180, 180],
+      "id": "19c506cb-989e-4075-91b5-285755bfdaa0",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "15 * * * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-2040, 420],
+      "id": "2e9e43a0-e869-43f7-9444-667b565a3812",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qaKOr6Kdbe3R9vi9",
+          "mode": "list",
+          "cachedResultName": "Earth Quake TH Notify / fetch spots"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [-1820, 420],
+      "id": "47dc28ee-db75-49df-8a31-cc1608ad5885",
+      "name": "Fetch Earth Quake Spots"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "id",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [-280, 180],
+      "id": "0196c690-7add-46ca-aa76-0747a630decb",
+      "name": "Merge GeoJSON with Format Msg"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [-1600, 420],
+      "id": "74470681-8fec-4d75-9eb5-34ad003d285a",
+      "name": "Loop Messages"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "18Yj3AguBo9vt2EE",
+          "mode": "list",
+          "cachedResultName": "Earth Quake TH Notify / Send Message To Subscribers"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [-60, 180],
+      "id": "8468f71e-b7b3-46e7-b6ca-8f93b34c990e",
+      "name": "Push Notifications"
+    },
+    {
+      "parameters": {
+        "content": "## Telegram Ref\nhttps://core.telegram.org/bots/api"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-40, -240],
+      "id": "304fa929-ef7c-4bac-b3e8-e56393e05c0a",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Create": {
+      "main": [
+        [
+          {
+            "node": "Convert Thai Timezone",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Calculate Arrival Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ref created data": {
+      "main": [
+        [
+          {
+            "node": "Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get event from DB": {
+      "main": [
+        [
+          {
+            "node": "event exist ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if data update?": {
+      "main": [
+        [
+          {
+            "node": "Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "event exist ?": {
+      "main": [
+        [
+          {
+            "node": "ref created data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "if data update?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Arrival Time": {
+      "main": [
+        [
+          {
+            "node": "Merge GeoJSON with Format Msg",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Convert Thai Timezone": {
+      "main": [
+        [
+          {
+            "node": "Merge GeoJSON with Format Msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Earth Quake Spots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Earth Quake Spots": {
+      "main": [
+        [
+          {
+            "node": "Loop Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge GeoJSON with Format Msg": {
+      "main": [
+        [
+          {
+            "node": "Push Notifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Messages": {
+      "main": [
+        [],
+        [
+          {
+            "node": "get event from DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push Notifications": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2fee160b-c2ad-4c3f-80ef-739e4c00b035",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c484fdf3cb39494fb04b60ac8b0773e25fb151f69a486e4f632d09d18deacd63"
+  },
+  "id": "IJSPYAhWJXsooy7Y",
+  "tags": [
+    {
+      "createdAt": "2025-04-06T04:48:01.455Z",
+      "updatedAt": "2025-04-06T04:48:01.455Z",
+      "id": "rveQZOwAfQv8CKi1",
+      "name": "EQTHN"
+    }
+  ]
+}

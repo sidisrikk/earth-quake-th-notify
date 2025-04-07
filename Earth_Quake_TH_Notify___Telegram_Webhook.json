@@ -1,0 +1,223 @@
+{
+  "name": "Earth Quake TH Notify / Telegram Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "4f228002-8f94-4065-b59f-53e6ef7394f0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-180, -120],
+      "id": "c99a81c1-0404-46a9-854d-b17576ca6b9f",
+      "name": "Webhook",
+      "webhookId": "4f228002-8f94-4065-b59f-53e6ef7394f0"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cab5ae2a-832a-4a5d-af96-d78355c7f90b",
+              "leftValue": "={{ $json.headers[\"x-telegram-bot-api-secret-token\"] }}",
+              "rightValue": "SECRET_TOKEN_THAT_SET_ON_BOT",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [40, -120],
+      "id": "42519b0f-ac30-48c2-8d15-3e3fb51198c1",
+      "name": "check valid secret token"
+    },
+    {
+      "parameters": {
+        "tableId": "subscribers",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "chatId",
+              "fieldValue": "={{ $json.body.message.chat.id }}"
+            },
+            {
+              "fieldId": "firstName",
+              "fieldValue": "={{ $json.body.message.chat.first_name }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [480, -220],
+      "id": "b305cc9c-768a-48c9-a5ae-1d8f0af6637d",
+      "name": "Supabase",
+      "credentials": {
+        "supabaseApi": {
+          "id": "wBbqO95CS73HURCX",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.message.text }}",
+                    "rightValue": "/start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "63d91cfb-b2b0-4e1a-a7c0-025959f10ace"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ef71ce9d-6aff-4569-85d7-8e85fdd090b9",
+                    "leftValue": "={{ $json.body.my_chat_member.new_chat_member.status }}",
+                    "rightValue": "kicked",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [260, -120],
+      "id": "b65d3c7e-afcc-49a4-92a6-5c859cd254fd",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "subscribers",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chatId",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.my_chat_member.chat.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [480, -20],
+      "id": "208ac0a5-2585-4689-b7cf-5af1358d9506",
+      "name": "Supabase1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "wBbqO95CS73HURCX",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "check valid secret token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check valid secret token": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Supabase1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "81084fe0-6a52-423a-a873-277a7a732f57",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c484fdf3cb39494fb04b60ac8b0773e25fb151f69a486e4f632d09d18deacd63"
+  },
+  "id": "HZCpLUvVjcYUFSdn",
+  "tags": [
+    {
+      "createdAt": "2025-04-06T04:48:01.455Z",
+      "updatedAt": "2025-04-06T04:48:01.455Z",
+      "id": "rveQZOwAfQv8CKi1",
+      "name": "EQTHN"
+    }
+  ]
+}

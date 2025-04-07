@@ -1,0 +1,81 @@
+{
+  "name": "Earth Quake TH Notify / Cleanup DB",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 3,
+              "triggerAtMinute": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "id": "1b182327-23e6-4bb0-a864-9114fe920298",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "events",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "event_occurred_at",
+              "condition": "lte",
+              "keyValue": "={{ $now.minus(7,'days').toUTC().toSeconds() * 1000 }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [220, 0],
+      "id": "08989631-0d5a-441f-81c1-b984567667d3",
+      "name": "delete old data > 7days",
+      "credentials": {
+        "supabaseApi": {
+          "id": "wBbqO95CS73HURCX",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "delete old data > 7days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ced3ecf8-0057-419a-8c2f-416c3d051380",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c484fdf3cb39494fb04b60ac8b0773e25fb151f69a486e4f632d09d18deacd63"
+  },
+  "id": "7b0PSS9Dh5GKoC3S",
+  "tags": [
+    {
+      "createdAt": "2025-04-06T04:48:01.455Z",
+      "updatedAt": "2025-04-06T04:48:01.455Z",
+      "id": "rveQZOwAfQv8CKi1",
+      "name": "EQTHN"
+    }
+  ]
+}
